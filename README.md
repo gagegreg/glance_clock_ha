@@ -1,3 +1,5 @@
+> **Development: clock apps** — Calendar wedges, scheduled weather and team-color announcements are being ported on this branch. See [setup, examples and current limitations](docs/APPS.md). BYB orders live on a separate `feature/byb-orders` branch. Hardware validation is pending.
+
 # Glance Clock Integration for Home Assistant
 
 [![hacs_badge](https://img.shields.io/badge/HACS-Custom-orange.svg)](https://github.com/hacs/integration)
