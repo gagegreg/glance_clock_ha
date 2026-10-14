@@ -12,6 +12,7 @@ from .bluetooth import GlanceClockConnectionManager, create_passive_coordinator
 from .services import async_register_services, async_unregister_services
 from .apps.controller import AppController
 from .apps.services import async_register_app_services, async_unregister_app_services
+from .apps.byb import async_register_byb_services, async_unregister_byb_services
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -78,6 +79,7 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     entry.async_on_unload(lambda: connection_manager.remove_connection_callback(apps.refresh))
     entry.async_on_unload(async_track_time_interval(hass, apps.refresh, timedelta(minutes=1)))
     async_register_app_services(hass)
+    async_register_byb_services(hass)
 
     _LOGGER.info(f"Glance Clock integration setup complete for {name}")
     return True
@@ -115,6 +117,7 @@ async def async_unload_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     await async_unregister_services(hass)
     if not hass.data[DOMAIN]:
         async_unregister_app_services(hass)
+        async_unregister_byb_services(hass)
 
     _LOGGER.info(
         f"Glance Clock integration unloaded for {entry_data.get('name')}")

@@ -448,3 +448,72 @@ announce:
           mode: box
       description: Clock palette ID; see docs/APPS.md.
       default: 12
+
+record_order:
+  name: 'BYB: record created order'
+  description: Record once per order ID; announce price/name in orange and gold. This
+    is for created orders, not paid revenue.
+  fields:
+    entry_id: &byb_entry
+      name: Clock config entry ID
+      selector:
+        text: {}
+      description: Optional with one clock.
+    id:
+      name: Unique order ID
+      selector:
+        text: {}
+      required: true
+    amount_minor:
+      name: Amount in cents
+      selector:
+        number:
+          min: 0
+          max: 10000000000
+          mode: box
+      required: true
+    currency:
+      name: Currency
+      selector:
+        select:
+          options:
+          - USD
+          - EUR
+          - GBP
+          - CAD
+          - AUD
+      required: true
+    occurred_at:
+      name: Created at (ISO timestamp with timezone)
+      selector:
+        text: {}
+      required: true
+    display_name:
+      name: Institution or name
+      selector:
+        text: {}
+      description: Optional; 40 characters maximum.
+announce_orders:
+  name: 'BYB: announce daily orders'
+  description: Display today’s order count and totals by currency, with orange/gold
+    rings.
+  fields:
+    entry_id: *byb_entry
+    duration:
+      name: Display seconds
+      selector:
+        number:
+          min: 3
+          max: 30
+          mode: box
+      default: 12
+    sound:
+      name: Sound
+      selector:
+        select:
+          options:
+          - none
+          - bells
+          - rise
+          - radar
+      default: none

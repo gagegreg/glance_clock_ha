@@ -1,3 +1,5 @@
+> **BYB branch** — This branch adds the isolated [BYB order app](docs/BYB.md) on top of the generic clock apps. The live API route remains on the Mac.
+
 > **Development: clock apps** — Calendar wedges, scheduled weather and team-color announcements are being ported on this branch. See [setup, examples and current limitations](docs/APPS.md). BYB orders live on a separate `feature/byb-orders` branch. Hardware validation is pending.
 
 # Glance Clock Integration for Home Assistant
