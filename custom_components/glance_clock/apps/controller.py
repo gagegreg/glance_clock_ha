@@ -23,6 +23,9 @@ class AppController:
         self._worker = None
         self._closed = False
         self._announcement_index = 0
+        # A ring-only scene does not remove the firmware's previous text scene.
+        # Also clean up our slot after a reload, when its old contents are unknown.
+        self._needs_scene_delete = True
 
     def segments(self):
         if self.fetched_at is None or self.now() - self.fetched_at > timedelta(
@@ -46,6 +49,10 @@ class AppController:
 
     async def _restore(self):
         if not self._closed and self.connection.is_connected:
+            if self._needs_scene_delete:
+                if not await self.connection.send_command(bytes([33, 0, 0, 7])):
+                    return
+                self._needs_scene_delete = False
             await self.connection.send_command(scene_packet(self.segments()))
 
     def next_meeting(self):
@@ -81,6 +88,8 @@ class AppController:
                 try:
                     # Recompute base so finished meetings cannot return after an announcement.
                     packet = scene_packet(self.segments(), **announcement)
+                    # Even an ambiguous/failed write may have reached the clock.
+                    self._needs_scene_delete = True
                     sent = await self.connection.send_command(packet)
                     if sent:
                         await asyncio.sleep(announcement.get("duration", 12))
