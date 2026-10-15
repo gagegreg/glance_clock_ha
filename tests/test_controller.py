@@ -156,3 +156,26 @@ async def test_failed_scene_delete_retried_without_replaying_notice(controller):
     assert packets[:2] == [bytes([33, 0, 0, 7])] * 2
     assert packets[2][:4] == bytes([0, 0, 8, 7])
     await controller.close()
+
+
+@pytest.mark.asyncio
+async def test_reconnect_cleans_notice_even_without_calendar(controller, monkeypatch):
+    async def disconnect_during_notice(_):
+        controller.connection.is_connected = False
+
+    monkeypatch.setattr(
+        "custom_components.glance_clock.apps.controller.asyncio.sleep",
+        disconnect_during_notice,
+    )
+    controller.announce(text="Daily orders", duration=3)
+    await controller._worker
+    assert controller.connection.send_command.call_count == 1
+    controller.connection.is_connected = True
+    await controller.refresh()
+    packets = [call.args[0] for call in controller.connection.send_command.call_args_list]
+    assert packets[1] == bytes([33, 0, 0, 7])
+    assert packets[2][:4] == bytes([0, 0, 8, 7])
+    controller.connection.send_command.reset_mock()
+    await controller.refresh()
+    controller.connection.send_command.assert_not_awaited()
+    await controller.close()

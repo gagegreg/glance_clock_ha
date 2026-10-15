@@ -42,7 +42,11 @@ class AppController:
         await self.refresh()
 
     async def refresh(self, *_):
-        if self._closed or self.meetings is None or self._lock.locked():
+        if (
+            self._closed
+            or (self.meetings is None and not self._needs_scene_delete)
+            or self._lock.locked()
+        ):
             return
         async with self._lock:
             await self._restore()
