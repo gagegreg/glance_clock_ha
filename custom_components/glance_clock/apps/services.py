@@ -41,8 +41,8 @@ CALENDAR = vol.Schema(
 CALENDAR_NOTICE = vol.Schema(
     {
         **ANNOUNCEMENT,
-        vol.Optional("effect", default="breath_1"): vol.In(
-            ("none", "breath_1", "breath_2", "dim_once", "dim_twice")
+        vol.Optional("effect", default="breathing"): vol.In(
+            ("none", "breathing", "breath_1", "breath_2", "dim_once", "dim_twice")
         ),
     }
 )

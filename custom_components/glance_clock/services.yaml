@@ -312,6 +312,8 @@ announce_calendar:
           options:
           - label: Text only
             value: none
+          - label: Breathing (while scrolling)
+            value: breathing
           - label: Breath 1
             value: breath_1
           - label: Breath 2
@@ -320,7 +322,7 @@ announce_calendar:
             value: dim_once
           - label: Two brief pixel pulses
             value: dim_twice
-      default: breath_1
+      default: breathing
 announce_weather:
   name: 'Apps: announce weather'
   description: Use any HA weather provider, then restore the calendar.
