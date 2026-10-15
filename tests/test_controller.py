@@ -77,6 +77,7 @@ async def test_queue_order_calendar_update_does_not_interrupt_and_unload_cancels
     texts = [
         o.text[0].text
         for call in controller.connection.send_command.call_args_list
+        if call.args[0][0] == 0
         for o in decode(call.args[0]).object
         if o.method == 4
     ]
@@ -120,4 +121,38 @@ async def test_failed_write_not_replayed_and_next_request_can_run(controller):
 async def test_round_robin_only_visible_events(controller):
     await controller.set_calendar([event("a"), event("b", color=11)])
     assert [controller.next_meeting().key for _ in range(3)] == ["a", "b", "a"]
+    await controller.close()
+
+
+@pytest.mark.asyncio
+async def test_notice_slot_deleted_before_ring_only_restore(controller, monkeypatch):
+    async def no_wait(_):
+        return
+
+    monkeypatch.setattr(
+        "custom_components.glance_clock.apps.controller.asyncio.sleep", no_wait
+    )
+    await controller.set_calendar([event()])
+    controller.connection.send_command.reset_mock()
+    controller.announce(text="Daily orders", duration=3, sound=6)
+    await controller._worker
+    packets = [call.args[0] for call in controller.connection.send_command.call_args_list]
+    assert packets[0][:4] == bytes([0, 0, 24, 7])
+    assert packets[1] == bytes([33, 0, 0, 7])
+    assert packets[2][:4] == bytes([0, 0, 8, 7])
+    assert all(o.method == 2 for o in decode(packets[2]).object)
+    controller.connection.send_command.reset_mock()
+    await controller.refresh()
+    assert controller.connection.send_command.call_count == 1
+    await controller.close()
+
+
+@pytest.mark.asyncio
+async def test_failed_scene_delete_retried_without_replaying_notice(controller):
+    controller.connection.send_command.side_effect = [False, True, True]
+    await controller.set_calendar([event()])
+    await controller.refresh()
+    packets = [call.args[0] for call in controller.connection.send_command.call_args_list]
+    assert packets[:2] == [bytes([33, 0, 0, 7])] * 2
+    assert packets[2][:4] == bytes([0, 0, 8, 7])
     await controller.close()
