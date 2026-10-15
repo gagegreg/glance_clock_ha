@@ -61,6 +61,7 @@ EFFECTS = (
     "none",
     "glow",
     "wave",
+    "breathing",
     "breath_1",
     "breath_2",
     "dim_once",
@@ -195,7 +196,7 @@ def scene_packet(
         else:
             animation.pulse.riseTime = animation.pulse.fallTime = 75
         restore_at = 150
-    elif effect.startswith(("breath_", "dim_")):
+    elif effect.startswith(("breath", "dim_")):
         pixels = [
             Segment(column, 1, lane, 1, s.color).packed
             for s in segments
@@ -205,13 +206,17 @@ def scene_packet(
             if (column + lane) % 4 == 0
         ]
         half, cycles = {
-            "breath_1": (duration * 25, 1),
+            "breathing": (100, 0),
+            "breath_1": (40, 1),
             "breath_2": (40, 2),
             "dim_once": (8, 1),
             "dim_twice": (8, 2),
         }[effect]
+        if effect == "breathing":
+            # Pulse the entire visible wedge, including thin overlap bands.
+            pixels = [s.packed for s in segments if s.meeting == meeting]
         if pixels:
-            restore_at = half * 2 * cycles
+            restore_at = duration * 50 if effect == "breathing" else half * 2 * cycles
             animation = obj(7, life=restore_at).areaAnimation
             animation.type = 0
             animation.area.extend(pixels)

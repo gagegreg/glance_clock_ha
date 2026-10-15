@@ -107,7 +107,7 @@ def test_midnight_wrap_and_dst_use_local_clock():
 
 @pytest.mark.parametrize(
     "effect,frames",
-    [("breath_1", 600), ("breath_2", 160), ("dim_once", 16), ("dim_twice", 32)],
+    [("breath_1", 80), ("breath_2", 160), ("dim_once", 16), ("dim_twice", 32)],
 )
 def test_calendar_cue_starts_with_text_and_restores(effect, frames):
     segments = calendar_segments([event()], NOW)[0]
@@ -170,16 +170,27 @@ def test_ascii_and_packet_limit():
 
 
 @pytest.mark.parametrize("duration", [3, 12, 30])
-def test_one_breath_spans_the_scrolling_announcement(duration):
+def test_breathing_spans_scroll_and_targets_whole_visible_wedge(duration):
     segments = calendar_segments([event()], NOW)[0]
     scene = decode(
         scene_packet(
-            segments, text="Meeting", meeting="a", effect="breath_1", duration=duration
+            segments, text="Meeting", meeting="a", effect="breathing", duration=duration
         )
     )
     text = next(o for o in scene.object if o.method == 4)
     cue = next(o for o in scene.object if o.method == 7)
     pulse = cue.areaAnimation.pulse
-    assert pulse.riseTime + pulse.fallTime == text.lifeTime == cue.lifeTime
-    assert pulse.riseTime == pulse.fallTime
+    assert pulse.riseTime == pulse.fallTime == 100
+    assert text.lifeTime == cue.lifeTime == duration * 50
+    assert list(cue.areaAnimation.area) == [s.packed for s in segments]
     assert scene.object[-1].startTime == text.lifeTime
+
+
+def test_breathing_includes_even_a_one_pixel_overlap_band():
+    segments = [Segment(1, 1, 0, 1, 11, "a"), Segment(1, 1, 1, 3, 21, "b")]
+    scene = decode(
+        scene_packet(segments, text="Meeting", meeting="a", effect="breathing")
+    )
+    cue = next(o for o in scene.object if o.method == 7)
+    assert list(cue.areaAnimation.area) == [segments[0].packed]
+    assert list(scene.object[-1].fill.segment) == [CLEAR] + [s.packed for s in segments]

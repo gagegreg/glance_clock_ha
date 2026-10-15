@@ -9,7 +9,7 @@ until we explicitly hand the clock over. Only one host should control it.
 
 | App | First HA version |
 | --- | --- |
-| Calendar | Next 12 hours from selected `calendar.*` entities; full wedges and stacked overlaps; per-calendar palette colors; rotating meeting titles; Breath 1/2 and brief pixel pulses |
+| Calendar | Next 12 hours from selected `calendar.*` entities; full wedges and stacked overlaps; per-calendar palette colors; rotating meeting titles; continuous whole-wedge breathing, Breath 1/2 and brief pixel pulses |
 | Weather | Choose any `weather.*` entity/provider/location configured in HA; native, F or C; current temperature/condition with firmware animation |
 | Sports | Announcement action with default MSU, Michigan, Tigers and Lions colors, plus color overrides; an HA automation supplies score text |
 | Other announcements | Text, sound, animation and two-color glow/wave; useful for calendar alerts |
@@ -78,7 +78,7 @@ Send `calendars: {}` and disable the refresh automation to clear the base.
 ```yaml
 action: glance_clock.announce_calendar
 data:
-  effect: breath_1  # One slow breath over the scroll; breath_2 gives two brief breaths. Also: dim_once, dim_twice, none
+  effect: breathing  # Whole visible wedge breathes every four seconds while text scrolls.
   duration: 20
 ```
 
@@ -187,3 +187,5 @@ limit are rejected rather than split into undocumented commands.
 
 Next: verify a small scene on HA hardware, test CTS/reconnection, add UI options
 for app selection, then port sports polling and any richer calendar controls.
+
+Breathing uses a 100-frame rise and fall, with the effect lifetime matching the text. Camera testing showed repeated visible dim/bright cycles on the full selected wedge; long pulse timing values did not produce the expected long cycle, so the continuous mode keeps the cycle fixed and extends only its lifetime. Other calendar wedges remain steady.
