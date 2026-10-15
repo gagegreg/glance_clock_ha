@@ -4,10 +4,10 @@ from unittest.mock import AsyncMock
 
 import pytest
 import pytest_asyncio
-from aiohttp import web
-from aiohttp.test_utils import TestClient, TestServer
 
 pytest.importorskip("homeassistant.core")
+from aiohttp import web
+from aiohttp.test_utils import TestClient, TestServer
 from test_ha_services import setup
 from test_orders import order
 from test_scenes import NOW
