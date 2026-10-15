@@ -81,7 +81,7 @@ EFFECTS = (
 
 
 def calendar_segments(meetings, now):
-    """Fill isolated events; stack overlaps inward in event-start order.
+    """Share four bands evenly; stack overlaps inward in event-start order.
 
     Absolute quarter-hours are converted to the clock's local timezone. During
     a DST fall-back, the nearer occurrence owns a repeated wall-clock column.
@@ -116,8 +116,14 @@ def calendar_segments(meetings, now):
         ]
         hidden.update(m.key for m in active[4:])
         if active:
-            for lane in range(4):
-                cells[lane][column] = active[min(lane, len(active) - 1)]
+            visible = active[:4]
+            bands, extra = divmod(4, len(visible))
+            lane = 0
+            for index, meeting in enumerate(visible):
+                height = bands + (index < extra)
+                for _ in range(height):
+                    cells[lane][column] = meeting
+                    lane += 1
     segments = []
     for lane, row in enumerate(cells):
         start = 0
