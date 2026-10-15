@@ -47,8 +47,20 @@ def test_isolated_wedge_full_height():
 def test_overlaps_stack_and_each_color_reaches_outer_when_alone():
     segments, hidden = calendar_segments([event(), event("b", 14, 16, 11)], NOW)
     grid = cells(segments)
-    assert [grid[(8, r)] for r in range(4)] == [15, 11, 11, 11]
+    assert [grid[(8, r)] for r in range(4)] == [15, 15, 11, 11]
     assert [grid[(12, r)] for r in range(4)] == [11] * 4
+    assert hidden == 0
+
+
+@pytest.mark.parametrize(
+    "count,expected",
+    [(1, [1, 1, 1, 1]), (2, [1, 1, 2, 2]), (3, [1, 1, 2, 3]), (4, [1, 2, 3, 4])],
+)
+def test_overlaps_share_four_bands_evenly(count, expected):
+    meetings = [event(str(i), color=i + 1) for i in range(count)]
+    segments, hidden = calendar_segments(meetings, NOW)
+    assert [cells(segments)[(4, lane)] for lane in range(4)] == expected
+    assert calendar_segments(list(reversed(meetings)), NOW)[0] == segments
     assert hidden == 0
 
 

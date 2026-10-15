@@ -64,7 +64,8 @@ Replace these example entity IDs with your own. Use calendar entities, not
 their `state` attributes: those expose only one event. `calendar.get_events`
 returns overlapping events. All-day/cancelled/ended events are omitted.
 The clock has 48 quarter-hour columns and four bands. The earliest event is
-outermost during overlap; each isolated event fills all four bands. A fifth
+outermost during overlap. One event fills all four bands; two share 2+2;
+three share 2+1+1 (earliest gets two); four share 1+1+1+1. A fifth
 concurrent event cannot be shown (a warning reports the hidden count).
 
 Refresh every five minutes with `blueprints/automation/glance_clock/calendar.yaml`.
