@@ -77,6 +77,29 @@ existing API background forwarder at
 Its bounded queue, outbox, timeouts and customer-handler isolation remain intact.
 No customer checkout or Shopify webhook should wait for HA or Bluetooth.
 
+For the HA Tailscale add-on, configure HA's HTTP reverse proxy **before**
+enabling Serve: Settings → System → Network → HTTP server → Reverse proxy,
+enable Trust X-Forwarded-For and trust only `127.0.0.1`. Save/restart HA and
+confirm the new settings, then enable `share_homeassistant: serve` in the
+Tailscale add-on and restart that add-on. Verify the certificate and receiver
+from the API host before changing its destination. Enabling Serve first can
+make the add-on fail its proxy check and stop Tailscale connectivity.
+
+Example daily schedule (HA's configured timezone):
+
+```yaml
+alias: Glance BYB daily orders
+triggers:
+  - trigger: time
+    at: ["10:00:00", "14:00:00", "18:00:00"]
+actions:
+  - action: glance_clock.announce_orders
+    data:
+      sound: bells
+      duration: 25
+mode: single
+```
+
 Before switching, migrate previously delivered order IDs and values into the
 HA ledger to preserve totals/deduplication, probe auth and malformed input,
 verify a clock-only orange/gold preview, and test duplicate delivery across a
