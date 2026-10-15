@@ -4,9 +4,9 @@
 `record_order`, `announce_orders` and the order ledger. Generic upstream work
 can be reviewed/merged without any BYB-specific code.
 
-This is a prepared HA destination. **The production API forwarder is still
-pointed at the Mac.** No checkout/webhook/API-service configuration was changed
-by this HA port. Test the BLE connection and these actions before switching.
+The BYB release is **1.3.0b3**, built from `feature/byb-orders`. It includes
+the generic 1.3.0b2 Bluetooth settings fix. Deployments can now receive orders
+directly on Home Assistant; there is no Mac dependency for order delivery.
 
 ## One created order
 
@@ -38,7 +38,7 @@ last five minutes are announced; older orders can contribute to today's total.
 Announcements are best-effort when the clock is offline or the queue is full.
 
 HA stores the ledger in private `.storage/glance_clock.byb_orders.<entry_id>`.
-Deduplication survives restarts. There is no public webhook listener. It keeps
+Deduplication survives restarts. The optional authenticated receiver is described below. The ledger keeps
 up to 10,000 orders and prunes entries older than seven days on new insertion;
 if no new orders arrive, existing records remain until the next insertion.
 The summary uses HA's timezone. Synthetic tests count in this ledger too; use
@@ -56,20 +56,31 @@ data:
 Text: `0 orders`, `1 order: $599.78`, or `2 orders: $650.00`. Use the shared
 scheduled-app blueprint for an interval or times such as `10:00, 14:00, 18:00`.
 
-## Private forwarder handoff (later)
+## Private receiver
 
-HA's authenticated REST action endpoint is
-`POST /api/services/glance_clock/record_order` on **ha-byb**, reachable from
-**api** over Tailscale. It accepts the same order payload keys as the Mac
-receiver. It needs an HA access token with authorization to invoke the action,
-not the Mac receiver's bearer token. Keep that token only in the forwarder's
-protected environment; never in this repo, automation YAML, or a URL.
+Store the existing forwarder's bearer token (at least 32 characters) in
+`/config/.storage/glance_clock.orders_token`, mode 0600, then restart HA.
+Without that file the receiver stays disabled. This token grants only order
+submission, not general Home Assistant API access. Keep it out of Git and logs.
 
-Before switching, verify TLS/network access from `api` to `ha-byb`, auth,
-duplicate delivery across an HA restart, BLE acknowledgments, clock behavior,
-and total/date boundaries. Keep the existing bounded background outbox and
-timeouts. Nothing in checkout or the customer webhook handler should wait for
-HA, Bluetooth, or the clock. Leave the Mac route available as a rollback.
+The receiver is `POST /api/glance_clock/orders`. It accepts the same JSON as
+`record_order`, with `Authorization: Bearer <token>`. It returns HTTP 200 and
+`{"accepted":true}` only after durable persistence or an identical duplicate.
+Authenticated GET is a side-effect-free readiness probe. Invalid auth is 401,
+invalid data 400, oversized bodies 413, and persistence/unavailability errors
+503 so the background sender can retry. Requests are limited to 4 KiB and four
+concurrent submissions. The clock may be offline while orders are counted.
 
-This branch does not activate the route, migrate the Mac ledger, backfill real
-orders, or modify any production API code.
+Use private Tailscale Serve HTTPS on ha-byb. Do not enable Funnel. Point the
+existing API background forwarder at
+`https://ha-byb.<tailnet>.ts.net/api/glance_clock/orders` using the same token.
+Its bounded queue, outbox, timeouts and customer-handler isolation remain intact.
+No customer checkout or Shopify webhook should wait for HA or Bluetooth.
+
+Before switching, migrate previously delivered order IDs and values into the
+HA ledger to preserve totals/deduplication, probe auth and malformed input,
+verify a clock-only orange/gold preview, and test duplicate delivery across a
+reload. Synthetic orders count in the ledger: use unit/integration tests or a
+separate test ledger instead of inserting fake sales into production totals.
+Keep the old route configuration as rollback until the private HA route is
+verified, then stop the Mac receiver.
