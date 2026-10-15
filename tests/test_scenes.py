@@ -107,7 +107,7 @@ def test_midnight_wrap_and_dst_use_local_clock():
 
 @pytest.mark.parametrize(
     "effect,frames",
-    [("breath_1", 80), ("breath_2", 160), ("dim_once", 16), ("dim_twice", 32)],
+    [("breath_1", 600), ("breath_2", 160), ("dim_once", 16), ("dim_twice", 32)],
 )
 def test_calendar_cue_starts_with_text_and_restores(effect, frames):
     segments = calendar_segments([event()], NOW)[0]
@@ -167,3 +167,19 @@ def test_ascii_and_packet_limit():
         scene_packet([Segment(c, 1, r, 1, 15) for c in range(48) for r in range(4)])
     with pytest.raises(ValueError):
         _ = Segment(0, 48, 3, 2, 15).packed
+
+
+@pytest.mark.parametrize("duration", [3, 12, 30])
+def test_one_breath_spans_the_scrolling_announcement(duration):
+    segments = calendar_segments([event()], NOW)[0]
+    scene = decode(
+        scene_packet(
+            segments, text="Meeting", meeting="a", effect="breath_1", duration=duration
+        )
+    )
+    text = next(o for o in scene.object if o.method == 4)
+    cue = next(o for o in scene.object if o.method == 7)
+    pulse = cue.areaAnimation.pulse
+    assert pulse.riseTime + pulse.fallTime == text.lifeTime == cue.lifeTime
+    assert pulse.riseTime == pulse.fallTime
+    assert scene.object[-1].startTime == text.lifeTime

@@ -78,7 +78,7 @@ Send `calendars: {}` and disable the refresh automation to clear the base.
 ```yaml
 action: glance_clock.announce_calendar
 data:
-  effect: breath_1  # breath_2, dim_once, dim_twice, none
+  effect: breath_1  # One slow breath over the scroll; breath_2 gives two brief breaths. Also: dim_once, dim_twice, none
   duration: 20
 ```
 
