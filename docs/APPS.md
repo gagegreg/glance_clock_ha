@@ -25,9 +25,11 @@ calendar app because the firmware scene priorities can supersede the app scene.
 
 ## Install for testing
 
-1. Back up HA. Copy this branch's `custom_components/glance_clock` directory
-   into HA's `config/custom_components/glance_clock`, then restart HA.
-   These development branches are not HACS releases yet.
+1. Back up HA. Add `gagegreg/glance_clock_ha` as a custom integration repository
+   in HACS, select the `1.3.0b1` beta release, then restart HA. This beta contains
+   the generic clock apps; BYB remains on its separate branch. Alternatively,
+   copy this branch's `custom_components/glance_clock` directory into HA's
+   `config/custom_components/glance_clock`, then restart HA.
 2. Configure the integration/BLE connection using upstream's instructions.
    Do not factory-reset or flash a working clock just to install these apps.
    Hand time still needs a working Bluetooth Current Time Service; this code
