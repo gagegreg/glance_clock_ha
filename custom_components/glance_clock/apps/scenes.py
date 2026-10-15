@@ -205,7 +205,7 @@ def scene_packet(
             if (column + lane) % 4 == 0
         ]
         half, cycles = {
-            "breath_1": (40, 1),
+            "breath_1": (duration * 25, 1),
             "breath_2": (40, 2),
             "dim_once": (8, 1),
             "dim_twice": (8, 2),
