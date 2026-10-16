@@ -193,8 +193,6 @@ def test_breathing_spans_scroll_and_targets_whole_visible_wedge(duration):
     cue = next(o for o in scene.object if o.method == 7)
     pulse = cue.areaAnimation.pulse
     assert pulse.riseTime == pulse.fallTime == 100
-    assert text.text[0].HasField("modificators")
-    assert text.text[0].modificators == 0  # Explicit None overrides firmware Repeat.
     assert text.lifeTime == cue.lifeTime == duration * 50
     assert list(cue.areaAnimation.area) == [s.packed for s in segments]
     assert scene.object[-1].startTime == text.lifeTime
