@@ -186,7 +186,10 @@ def scene_packet(
     base = [CLEAR] + [s.packed for s in segments]
     obj(2).fill.segment.extend(base)
     if text:
-        obj(4, life=duration * 50).text.add(text=clock_text(text))
+        # Firmware defaults to Repeat; meeting titles should make one pass.
+        obj(4, life=duration * 50).text.add(
+            text=clock_text(text), modificators=0 if meeting is not None else 1
+        )
     restore_at = 0
     if effect in ("glow", "wave"):
         areas = [
